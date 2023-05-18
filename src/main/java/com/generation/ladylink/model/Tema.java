@@ -49,12 +49,12 @@ public class Tema {
 		this.id = id;
 	}
 
-	public String getDescricao() {
+	public String getTitulo() {
 		return titulo;
 	}
 
-	public void setDescricao(String descricao) {
-		this.titulo = descricao;
+	public void setTitulo(String titulo) {
+		this.titulo = titulo;
 	}
 	
 	
