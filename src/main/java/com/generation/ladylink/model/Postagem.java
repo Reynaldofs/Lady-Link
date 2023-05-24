@@ -30,11 +30,23 @@ public class Postagem {
 	@Size(min = 10, max = 1000, message = "Este atributo tem que ter no minimo 10 caracteres e no máximo 1000 caracteres")
 	private String conteudo;
 
+
+	//contador de Views para as postagens
+	private int visualiacao;
+
+	public int getVisualiacao() {
+		return visualiacao;
+	}
+
+	public void setVisualiacao(int visualiacao) {
+		this.visualiacao = visualiacao;
+	}
+
 	@UpdateTimestamp
 	private LocalDateTime data;
 
 	@ManyToOne
-	@JsonIgnoreProperties("postagem")
+	@JsonIgnoreProperties("Postagem")
 	private Tema tema;
 
 	public Tema getTema() {

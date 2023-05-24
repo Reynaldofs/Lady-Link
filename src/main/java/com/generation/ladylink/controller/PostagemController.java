@@ -1,5 +1,6 @@
 package com.generation.ladylink.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import jakarta.validation.Valid;
@@ -11,10 +12,10 @@ import com.generation.ladylink.repository.TemaRepository;
 import com.generation.ladylink.model.Postagem;
 import com.generation.ladylink.repository.PostagemRepository;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.ModelAndView;
 
 @RestController
 @RequestMapping("/postagens")
-
 public class PostagemController {
 
 	@Autowired
@@ -25,14 +26,21 @@ public class PostagemController {
 
 	@GetMapping
 	public ResponseEntity<List<Postagem>> getAll() {
-
 		return ResponseEntity.ok(postagemRepository.findAll());
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<Postagem> getById(@PathVariable Long id) {
-		return postagemRepository.findById(id).map(resposta -> ResponseEntity.ok(resposta))
-				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+		Optional<Postagem> postagemOptional = postagemRepository.findById(id);
+
+		if (postagemOptional.isPresent()) {
+			Postagem postagem = postagemOptional.get();
+			postagem.setVisualiacao(postagem.getVisualiacao() + 1);
+			postagemRepository.save(postagem);
+			return ResponseEntity.ok(postagem);
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
 	}
 
 	@GetMapping("/titulo/{titulo}")
@@ -42,30 +50,36 @@ public class PostagemController {
 
 	@PostMapping
 	public ResponseEntity<Postagem> post(@Valid @RequestBody Postagem postagem) {
-		if (temaRepository.existsById(postagem.getTema().getId()))
+		if (temaRepository.existsById(postagem.getTema().getId())) {
 			return ResponseEntity.status(HttpStatus.CREATED).body(postagemRepository.save(postagem));
-
-		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tema não existe", null);
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tema não existe");
+		}
 	}
 
 	@PutMapping
 	public ResponseEntity<Postagem> put(@Valid @RequestBody Postagem postagem) {
 		if (postagemRepository.existsById(postagem.getId())) {
-			if (temaRepository.existsById(postagem.getTema().getId()))
-
-				return ResponseEntity.status(HttpStatus.OK).body(postagemRepository.save(postagem));
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tema não existe", null);
+			if (temaRepository.existsById(postagem.getTema().getId())) {
+				return ResponseEntity.ok(postagemRepository.save(postagem));
+			} else {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tema não existe");
+			}
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 	}
 
-	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@DeleteMapping("{id}")
-	public void delete(@PathVariable Long id) {
-		Optional<Postagem> postagem = postagemRepository.findById(id);
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		Optional<Postagem> postagemOptional = postagemRepository.findById(id);
 
-		if (postagem.isEmpty())
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-		postagemRepository.deleteById(id);
+		if (postagemOptional.isPresent()) {
+			postagemRepository.deleteById(id);
+			return ResponseEntity.noContent().build();
+		} else {
+			return ResponseEntity.notFound().build();
+		}
 	}
+
 }
